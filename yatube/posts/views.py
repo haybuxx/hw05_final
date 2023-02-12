@@ -32,12 +32,22 @@ def profile(request, username):
     author = get_object_or_404(User, username=username)
     author_total_posts = author.posts.all()
     page_obj = get_context_page(request, author_total_posts, COUNT_POST_PAGE)
+    if request.user.is_authenticated:
+        following = Follow.objects.filter(
+            user=request.user, author=author
+        ).exists()
+    else:
+        following = False
+    profile = author
     context = {
         'author': author,
         'author_total_posts': author_total_posts,
         'page_obj': page_obj,
+        'following': following,
+        'profile': profile
     }
     return render(request, 'posts/profile.html', context)
+
 
 
 def post_detail(request, post_id):
