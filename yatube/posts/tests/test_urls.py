@@ -78,7 +78,6 @@ class PostURLTests(TestCase):
                 'posts:post_detail',
                 kwargs={'post_id': self.post.pk}
             ): "posts/post_detail.html",
-            reverse('unexisting_page'): "core/404.html",
         }
         for address, template in templates_url_names.items():
             with self.subTest(address=address):
@@ -101,3 +100,4 @@ class PostURLTests(TestCase):
             with self.subTest(url=url):
                 response = self.guest_client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+                self.assertTemplateUsed(response, 'core/404.html')
