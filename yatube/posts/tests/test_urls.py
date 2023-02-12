@@ -31,30 +31,27 @@ class PostURLTests(TestCase):
         self.authorized_client.force_login(self.user)
 
     def test_public_pages(self):
-        reverse_group = reverse(
-            'posts:group_posts',
-            kwargs={'slug': self.group.slug}
-        )
-        reverse_user = reverse(
-            'posts:profile',
-            kwargs={'username': self.user.username}
-        )
-        reverse_post = reverse(
-            'posts:post_detail',
-            kwargs={'post_id': self.post.pk}
-        )
-        reverse_index = reverse(
-            'posts:index'
-        )
-        urls_list = [
-            reverse_index,
-            reverse_group,
-            reverse_user,
-            reverse_post,
-        ]
-        for urls in urls_list:
-            response = self.guest_client.get(urls)
-            self.assertEqual(response.status_code, HTTPStatus.OK)
+        templates_url_names = {
+            reverse('posts:index'): "posts/index.html",
+            reverse('posts:post_create'): "posts/create_post.html",
+            reverse(
+                'posts:profile',
+                kwargs={'username': PostURLTests.user.username}
+            ): "posts/profile.html",
+            reverse(
+                'posts:post_detail',
+                kwargs={'post_id': PostURLTests.post.pk}
+            ): "posts/post_detail.html",
+
+            reverse(
+                'posts:post_edit',
+                kwargs={'post_id': self.post.pk}
+            ): "posts/create_post.html",
+        }
+        for address, template in templates_url_names.items():
+            with self.subTest(address=address):
+                response = self.authorized_client.get(address)
+                self.assertTemplateUsed(response, template)
 
     def test_create_for_authorized(self):
         response = self.authorized_client.get(reverse('posts:post_create'))

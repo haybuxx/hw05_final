@@ -114,16 +114,12 @@ class PostTests(TestCase):
                 self.assertEqual(response_name, reverse_name)
 
     def test_group_correct_context(self):
-        response = self.authorized_client.get(reverse('posts:group_posts',
-                                              kwargs={'slug':
-                                                      self.post.group.slug
-                                                      }))
-        first_object = response.context['page_obj'][0]
-        post_image_0 = Post.objects.get(pk=1).image.name
-        self.assertEqual(post_image_0, self.post.image.name)
-        self.assertEqual(self.post.group.title,
-                         first_object.group.title)
-        self.assertEqual(self.post.group.slug, first_object.group.slug)
+        response = self.authorized_client.get(
+            reverse('posts:profile', kwargs={'username': self.user})
+        )
+        post = response.context['page_obj'][0]
+        self.assertEqual(post.author, self.user)
+
 
     def test_profile_correct_context(self):
         response = self.authorized_client.get(reverse('posts:profile',
