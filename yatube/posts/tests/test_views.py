@@ -120,7 +120,6 @@ class PostTests(TestCase):
         post = response.context['page_obj'][0]
         self.assertEqual(post.author, self.user)
 
-
     def test_profile_correct_context(self):
         response = self.authorized_client.get(reverse('posts:profile',
                                               kwargs={'username':
