@@ -3,15 +3,16 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from .forms import PostForm, CommentForm
 from .models import Post, Group, User, Follow
+
 from .utils import get_context_page
 
-COUNT_POST_PAGE = 10
-TEXT_SHORT = 30
+SHORT_TEXT = 30
+POSTS_NUMBER = 10
 
 
 def index(request):
     posts = Post.objects.all()
-    page_obj = get_context_page(request, posts, COUNT_POST_PAGE)
+    page_obj = get_context_page(request, posts, POSTS_NUMBER)
     context = {
         'page_obj': page_obj,
     }
@@ -20,7 +21,7 @@ def index(request):
 
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
-    page_obj = get_context_page(request, group.posts.all(), COUNT_POST_PAGE)
+    page_obj = get_context_page(request, group.posts.all(), POSTS_NUMBER)
     context = {
         'group': group,
         'page_obj': page_obj,
@@ -30,8 +31,8 @@ def group_posts(request, slug):
 
 def profile(request, username):
     author = get_object_or_404(User, username=username)
-    author_total_posts = author.posts.all()
-    page_obj = get_context_page(request, author_total_posts, COUNT_POST_PAGE)
+    author_total_posts = Post.objects.filter(author_id=author.pk).count()
+    page_obj = get_context_page(request, author.posts.all(), POSTS_NUMBER)
     if request.user.is_authenticated:
         following = Follow.objects.filter(
             user=request.user, author=author
@@ -52,13 +53,13 @@ def profile(request, username):
 def post_detail(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     author_total_posts = Post.objects.filter(author_id=post.author.pk).count()
-    post_1 = post.text
+    post1 = post.text
     form = CommentForm()
     comment = post.comments.all()
     context = {
         'post': post,
         'author_total_posts': author_total_posts,
-        'post_1': post_1,
+        'post1': post1,
         'form': form,
         'comments': comment
     }

@@ -1,11 +1,11 @@
 from django import forms
+from django.conf import settings
+from django.core.cache import cache
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
 from ..models import Group, Post, Follow
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.conf import settings
-from django.core.cache import cache
 import shutil
 import tempfile
 
@@ -102,8 +102,8 @@ class PostTests(TestCase):
     def test_index_correct_context(self):
         response = self.authorized_client.get(reverse('posts:index'))
         first_object = response.context['page_obj'][1]
-        post_image_1 = Post.objects.get(pk=1).image.name
-        self.assertEqual(post_image_1, self.post.image.name)
+        post_image_0 = Post.objects.get(pk=1).image.name
+        self.assertEqual(post_image_0, self.post.image.name)
         context_objects = {
             first_object.author.username: self.post.author.username,
             first_object.text: self.post.text,
@@ -119,8 +119,8 @@ class PostTests(TestCase):
                                                       self.post.group.slug
                                                       }))
         first_object = response.context['page_obj'][0]
-        post_image_1 = Post.objects.get(pk=1).image.name
-        self.assertEqual(post_image_1, self.post.image.name)
+        post_image_0 = Post.objects.get(pk=1).image.name
+        self.assertEqual(post_image_0, self.post.image.name)
         self.assertEqual(self.post.group.title,
                          first_object.group.title)
         self.assertEqual(self.post.group.slug, first_object.group.slug)
@@ -130,8 +130,8 @@ class PostTests(TestCase):
                                               kwargs={'username':
                                                       f'{self.user.username}'
                                                       }))
-        post_image_1 = Post.objects.get(pk=1).image.name
-        self.assertEqual(post_image_1, self.post.image.name)
+        post_image_0 = Post.objects.get(pk=1).image.name
+        self.assertEqual(post_image_0, self.post.image.name)
         first_object = response.context['page_obj'][1]
         self.assertEqual(response.context['author'].username, f'{self.user}')
         self.assertEqual(first_object.text,
@@ -211,25 +211,16 @@ class PaginatorViewsTest(TestCase):
             self.assertEqual(len(response.context.get('page_obj')), 10)
 
     def test_second_page_contains_three_posts(self):
-        templates_pages_names = {
-            reverse("posts:index"):
-                'posts/index.html',
-            reverse("posts:group_list", kwargs={"slug": self.group.slug}):
-                'posts/group_list.html',
-            reverse("posts:profile", kwargs={"username": self.user}):
-                'posts/profile.html',
+        list_urls = {
+            reverse('posts:index') + "?page=2": 'index',
+            reverse('posts:group_posts', kwargs={'slug': 'slug'}) + "?page=2":
+            'group_posts',
+            reverse('posts:profile', kwargs={'username': 'auth'}) + "?page=2":
+            'profile',
         }
-
-        for reverse_name, _ in templates_pages_names.items():
-            with self.subTest(reverse_name=reverse_name):
-                page = 2
-                response = self.authorized_client.get(
-                    reverse_name,
-                    {'page': page}
-                )
-                self.assertEqual(
-                    len(response.context['page_obj']), 3
-                )
+        for tested_url in list_urls.keys():
+            response = self.client.get(tested_url)
+            self.assertEqual(len(response.context.get('page_obj')), 3)
 
 
 class FollowTests(TestCase):
