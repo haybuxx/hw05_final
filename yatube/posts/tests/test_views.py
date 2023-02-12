@@ -211,16 +211,25 @@ class PaginatorViewsTest(TestCase):
             self.assertEqual(len(response.context.get('page_obj')), 10)
 
     def test_second_page_contains_three_posts(self):
-        list_urls = {
-            reverse('posts:index') + "?page=2": 'index',
-            reverse('posts:group_posts', kwargs={'slug': 'slug'}) + "?page=2":
-            'group_posts',
-            reverse('posts:profile', kwargs={'username': 'auth'}) + "?page=2":
-            'profile',
+        templates_pages_names = {
+            reverse("posts:index"):
+                'posts/index.html',
+            reverse("posts:group_list", kwargs={"slug": self.group.slug}):
+                'posts/group_list.html',
+            reverse("posts:profile", kwargs={"username": self.user}):
+                'posts/profile.html',
         }
-        for tested_url in list_urls.keys():
-            response = self.client.get(tested_url)
-            self.assertEqual(len(response.context.get('page_obj')), 3)
+
+        for reverse_name, _ in templates_pages_names.items():
+            with self.subTest(reverse_name=reverse_name):
+                page = 2
+                response = self.authorized_client.get(
+                    reverse_name,
+                    {'page': page}
+                )
+                self.assertEqual(
+                    len(response.context['page_obj']), 3
+                )
 
 
 class FollowTests(TestCase):
