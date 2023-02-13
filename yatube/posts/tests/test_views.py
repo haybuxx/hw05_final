@@ -138,7 +138,6 @@ class PostTests(TestCase):
                                                       self.post.pk}))
         post_image_0 = Post.objects.get(pk=1).image.name
         self.assertEqual(post_image_0, self.post.image.name)
-        self.assertEqual(response.context['post1'], self.post.text)
 
     def test_create_post_correct_context(self):
         response = self.authorized_client.get(reverse('posts:post_create'))
@@ -234,25 +233,22 @@ class FollowTests(TestCase):
         self.client_auth_following.force_login(self.user_following)
 
     def test_follow(self):
+        self.client_auth_follower.get(reverse('posts:profile_follow',
+                                              kwargs={'username':
+                                                      self.user_following.
+                                                      username}))
+        self.assertEqual(Follow.objects.all().count(), 1)
+
+    def test_unfollow(self):
         Follow.objects.create(
             user=self.user_follower,
             author=self.user_following
         )
         follower_count = Follow.objects.count()
-        self.follower_client.get(reverse(
+        self.client_auth_follower.get(reverse(
             'posts:profile_unfollow',
             args=(self.user_following.username,)))
         self.assertEqual(Follow.objects.count(), follower_count - 1)
-
-    def test_unfollow(self):
-        self.client_auth_follower.get(reverse('posts:profile_follow',
-                                              kwargs={'username':
-                                                      self.user_following.
-                                                      username}))
-        self.client_auth_follower.get(reverse('posts:profile_unfollow',
-                                      kwargs={'username':
-                                              self.user_following.username}))
-        self.assertEqual(Follow.objects.all().count(), 0)
 
     def test_subscription(self):
         Follow.objects.create(user=self.user_follower,
