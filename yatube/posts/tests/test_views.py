@@ -234,11 +234,15 @@ class FollowTests(TestCase):
         self.client_auth_following.force_login(self.user_following)
 
     def test_follow(self):
-        self.client_auth_follower.get(reverse('posts:profile_follow',
-                                              kwargs={'username':
-                                                      self.user_following.
-                                                      username}))
-        self.assertEqual(Follow.objects.all().count(), 1)
+        Follow.objects.create(
+            user=self.user_follower,
+            author=self.user_following
+        )
+        follower_count = Follow.objects.count()
+        self.follower_client.get(reverse(
+            'posts:profile_unfollow',
+            args=(self.user_following.username,)))
+        self.assertEqual(Follow.objects.count(), follower_count - 1)
 
     def test_unfollow(self):
         self.client_auth_follower.get(reverse('posts:profile_follow',
@@ -253,7 +257,7 @@ class FollowTests(TestCase):
     def test_subscription(self):
         Follow.objects.create(user=self.user_follower,
                               author=self.user_following)
-        response = self.client_auth_follower.get('/follow/')
+        response = self.client_auth_follower.get(reverse('posts:follow_index'))
         post_text_0 = response.context['page_obj'][0].text
         self.assertEqual(post_text_0, self.post.text)
         response = self.client_auth_following.get('/follow/')
