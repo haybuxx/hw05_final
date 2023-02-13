@@ -138,6 +138,7 @@ class PostTests(TestCase):
                                                       self.post.pk}))
         post_image_0 = Post.objects.get(pk=1).image.name
         self.assertEqual(post_image_0, self.post.image.name)
+        self.assertEqual(response.context['post'], self.post)
 
     def test_create_post_correct_context(self):
         response = self.authorized_client.get(reverse('posts:post_create'))
